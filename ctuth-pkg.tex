@@ -8,8 +8,26 @@
 % A lot of the code here is not latex3, but rather the good'ol latex2e code. The reason is that
 % it heavily depends on l2e packages, and we decided not to mix the code together too much.
 
-\RequirePackage{lmodern}
-\RequirePackage[T1]{fontenc}
+\RequirePackage{iftex}
+
+\newif\ifxetexorluatex
+\ifxetex
+  \xetexorluatextrue
+\else
+  \ifluatex
+    \xetexorluatextrue
+  \else
+    \xetexorluatexfalse
+  \fi
+\fi
+
+\ifxetexorluatex
+	\RequirePackage{fontspec}
+\else
+	\RequirePackage{lmodern}
+	\RequirePackage[T1]{fontenc}
+\fi
+
 \RequirePackage{microtype}
 \RequirePackage{graphicx}
 \RequirePackage{pdfpages}
@@ -17,11 +35,21 @@
 
 
 
-%%% BABEL -- LANGUAGE HANDLING
+%%% BABEL/POLYGLOSSIA -- LANGUAGE HANDLING
 
 % The loading of the languages is a bit wicked, but it works this way. We load the main language once more
 % to make it the default one.
-\RequirePackage[\seq_use:Nn \g_ctuthesis_languages_seq {,},\g_ctuthesis_field_mainlanguage_tl]{babel}
+\ifxetexorluatex
+	\RequirePackage{polyglossia}
+	\setdefaultlanguage{\g_ctuthesis_field_mainlanguage_tl}
+	\use:n {
+		\ExplSyntaxOff
+		\setotherlanguages{\seq_use:Nn \g_ctuthesis_languages_seq {,}}
+		\ExplSyntaxOn
+	}
+\else
+	\RequirePackage[\seq_use:Nn \g_ctuthesis_languages_seq {,},\g_ctuthesis_field_mainlanguage_tl]{babel}
+\fi
 
 % Used for setting title, main or second language
 \NewDocumentCommand \selectctulanguage { m } {
